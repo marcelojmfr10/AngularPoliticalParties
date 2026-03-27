@@ -1,1 +1,6 @@
-<p>chart-page works!</p>,
+<h1>Partidos Políticos - <small>{{webSocketService.connectionStatus()}}</small></h1>
+
+
+<bar-chart [chartData]="chartData()"></bar-chart>
+
+<chart-form></chart-form>
