@@ -1,31 +1,33 @@
 import { effect, Injectable, signal } from '@angular/core';
+import { ClientMessage, ServerMessage } from '../types';
+import { Subject } from 'rxjs';
 
 type ConnectionState = 'connecting' | 'connected' | 'disconnected';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class WebSocketConnectionService {
-
   private socket: WebSocket | null = null;
   public connectionStatus = signal<ConnectionState>('connecting');
+  public onMessage = new Subject<ServerMessage>();
 
-  constructor() { 
+  constructor() {
     this.connectWebSocket();
   }
 
   // reconexión
-  private reconnectInterval: number |null = null;
+  private reconnectInterval: number | null = null;
   private reconnectEffect = effect(() => {
-    if(this.connectionStatus() === 'disconnected'){
-      if(this.reconnectInterval) return;
+    if (this.connectionStatus() === 'disconnected') {
+      if (this.reconnectInterval) return;
 
       this.reconnectInterval = setInterval(() => {
         this.connectWebSocket();
       }, 1000);
     }
 
-    if(this.connectionStatus() === 'connected'){
+    if (this.connectionStatus() === 'connected') {
       clearInterval(this.reconnectInterval || 0);
       this.reconnectInterval = null;
     }
@@ -52,8 +54,14 @@ export class WebSocketConnectionService {
     });
 
     this.socket.addEventListener('message', (event) => {
-      console.log('server: ', event);
-      console.log('data', event.data);
+      const data: ServerMessage = JSON.parse(event.data);
+      this.onMessage.next(data);
     });
+  }
+
+  public sendMessage(message: ClientMessage) {
+    if (!this.socket) throw new Error('WebSocket connection is not established');
+
+    this.socket.send(JSON.stringify(message));
   }
 }

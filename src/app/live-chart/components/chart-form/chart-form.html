@@ -2,7 +2,7 @@
   <header class="party-config__header">
     <h2 class="party-config__title">Configuración de Partidos</h2>
 
-    <button class="party-config__add-button" type="button">
+    <button (click)="addParty()" class="party-config__add-button" type="button">
       <span class="party-config__add-button-icon" aria-hidden="true">+</span>
       Agregar Partido
     </button>
@@ -11,8 +11,14 @@
   <hr class="party-config__divider" />
 
   <ul class="party-config__list" aria-label="Parties">
-
-    <chart-form-row></chart-form-row>
-
+    @for (party of parties(); track party.id) {
+      <chart-form-row
+        [party]="party"
+        (incrementeVotes)="incrementeVotes($event)"
+        (decrementeVotes)="decrementeVotes($event)"
+        (delete)="deleteParty($event)"
+        (update)="updateParty($event)"
+      ></chart-form-row>
+    }
   </ul>
 </section>

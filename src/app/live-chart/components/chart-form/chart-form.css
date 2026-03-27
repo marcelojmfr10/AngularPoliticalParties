@@ -14,7 +14,9 @@
   padding: 22px 22px 18px;
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(25, 25, 25, 0.62), rgba(22, 22, 22, 0.62));
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 16px 50px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
 }
 
@@ -44,7 +46,10 @@
   color: rgba(114, 255, 155, 0.95);
   font-weight: 700;
   cursor: pointer;
-  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease,
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
     transform 160ms ease;
 }
 

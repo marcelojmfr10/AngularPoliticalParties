@@ -1,7 +1,18 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { BarChart } from "../../components/BarChart/BarChart";
-import { ChartForm } from "../../components/chart-form/chart-form";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  OnDestroy,
+  signal,
+} from '@angular/core';
+import { BarChart } from '../../components/BarChart/BarChart';
+import { ChartForm } from '../../components/chart-form/chart-form';
 import { WebSocketConnectionService } from '../../../web-sockets/services/web-socket-connection.service';
+import { Subscription } from 'rxjs';
+import type { Party } from '../../../types';
+import { ChartData } from 'chart.js';
 
 @Component({
   selector: 'app-chart-page',
@@ -9,18 +20,52 @@ import { WebSocketConnectionService } from '../../../web-sockets/services/web-so
   templateUrl: './chart-page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ChartPage {
-
+export class ChartPage implements OnInit, OnDestroy {
   public webSocketService = inject(WebSocketConnectionService);
+  public onMessageSubscription: Subscription | null = null;
 
-  chartData = computed(() => ({
-    labels: ['label 1', 'label 2', 'label 3', 'label 4', 'label 5'],
+  protected parties = signal<Party[]>([]);
+
+  protected chartData = computed<ChartData<'bar'>>(() => ({
+    labels: this.parties().map((party) => party.name),
     datasets: [
       {
-        label: 'votos',
-        data: [10, 20, 30, 4, 5]
-      }
-    ]
+        label: 'Votos',
+        data: this.parties().map((party) => party.votes),
+        backgroundColor: this.parties().map((party) => party.color),
+        borderColor: this.parties().map((party) => party.borderColor),
+        borderWidth: 3,
+        borderRadius: 10,
+      },
+    ],
   }));
 
+  ngOnInit(): void {
+    this.onMessageSubscription = this.webSocketService.onMessage.subscribe((message) => {
+      console.log({ message });
+      const { type, payload } = message;
+
+      switch (type) {
+        case 'PARTIES_LIST':
+          this.parties.set(payload);
+          break;
+        case 'PARTY_UPDATED':
+        case 'VOTES_UPDATED':
+          this.parties.update((parties) =>
+            parties.map((party) => (party.id === payload.id ? payload : party)),
+          );
+          break;
+        case 'PARTY_DELETED':
+          this.parties.update((parties) => parties.filter((party) => party.id !== payload.id));
+          break;
+        case 'PARTY_ADDED':
+          this.parties.update((parties) => [...parties, payload]);
+          break;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.onMessageSubscription?.unsubscribe();
+  }
 }

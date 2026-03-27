@@ -1,9 +1,33 @@
-import { Component } from '@angular/core';
+import { Component, input, output } from '@angular/core';
+import { Party } from '../../../types';
 
 @Component({
   selector: 'chart-form-row',
   imports: [],
   templateUrl: './chart-form-row.html',
-  styleUrls: ['./chart-form-row.css']
+  styleUrls: ['./chart-form-row.css'],
 })
-export class ChartFormRow { }
+export class ChartFormRow {
+  public party = input.required<Party>();
+
+  incrementeVotes = output<Party>();
+  decrementeVotes = output<Party>();
+  delete = output<Party>();
+  update = output<Party>();
+
+  private updatePartyTimeout: number | null = null;
+
+  updatedPartyName(name: string) {
+    if (this.updatePartyTimeout) {
+      clearInterval(this.updatePartyTimeout);
+    }
+
+    this.updatePartyTimeout = setTimeout(() => {
+      console.log('emitiendo party', name);
+      this.update.emit({
+        ...this.party(),
+        name,
+      });
+    }, 500);
+  }
+}
